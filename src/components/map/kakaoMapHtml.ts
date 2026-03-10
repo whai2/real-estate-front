@@ -97,7 +97,7 @@ export function getKakaoMapHtml(lat: number, lng: number) {
   <div id="map"></div>
   <div class="my-location-btn" onclick="moveToMyLocation()">📍</div>
 
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&libraries=services,clusterer"></script>
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&libraries=services,clusterer&autoload=false"></script>
   <script>
     var map, clusterer, markers = [], overlays = [], ps;
     var currentLat = ${lat}, currentLng = ${lng};
