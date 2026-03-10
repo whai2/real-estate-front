@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -41,10 +42,16 @@ export default function MyPageScreen() {
     : 0;
 
   const handleLogout = () => {
-    Alert.alert('로그아웃', '정말 로그아웃 하시겠습니까?', [
-      { text: '취소', style: 'cancel' },
-      { text: '로그아웃', style: 'destructive', onPress: () => logout() },
-    ]);
+    if (Platform.OS === 'web') {
+      if (window.confirm('정말 로그아웃 하시겠습니까?')) {
+        logout();
+      }
+    } else {
+      Alert.alert('로그아웃', '정말 로그아웃 하시겠습니까?', [
+        { text: '취소', style: 'cancel' },
+        { text: '로그아웃', style: 'destructive', onPress: () => logout() },
+      ]);
+    }
   };
 
   const MENU_SECTIONS = [

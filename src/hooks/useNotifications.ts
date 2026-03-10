@@ -6,14 +6,16 @@ import type { EventSubscription } from 'expo-modules-core';
 import { apiRequest } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+}
 
 async function registerForPushNotifications() {
   if (!Device.isDevice) {
@@ -68,7 +70,7 @@ export function useNotifications() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || Platform.OS === 'web') return;
 
     registerForPushNotifications();
 

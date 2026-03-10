@@ -26,6 +26,7 @@ export default function LoginScreen() {
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   // 전화번호 포맷팅 (010-1234-5678)
   const formatPhone = (text: string) => {
@@ -43,15 +44,15 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
+    setError('');
     try {
       await apiRequest('/auth/send-code', {
         method: 'POST',
         body: { phone: cleaned },
       });
       setStep('code');
-      Alert.alert('알림', '인증번호가 발송되었습니다.');
     } catch (err: any) {
-      Alert.alert('오류', err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -64,20 +65,16 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
+    setError('');
     try {
       const result = await apiRequest('/auth/verify', {
         method: 'POST',
         body: { phone: phone.replace(/\D/g, ''), code },
       });
       setAuth(result.data.token, result.data.user);
-
-      if (result.data.isNewUser) {
-        router.replace('/register');
-      } else {
-        router.replace('/(tabs)');
-      }
+      router.replace('/(tabs)');
     } catch (err: any) {
-      Alert.alert('오류', err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -110,6 +107,7 @@ export default function LoginScreen() {
                 keyboardType="phone-pad"
                 maxLength={13}
               />
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
               <Button
                 title="인증번호 받기"
                 onPress={handleSendCode}
@@ -136,6 +134,7 @@ export default function LoginScreen() {
                 keyboardType="number-pad"
                 maxLength={6}
               />
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
               <Button
                 title="로그인"
                 onPress={handleVerify}
@@ -200,6 +199,12 @@ const styles = StyleSheet.create({
   },
   formSection: {
     flex: 1,
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: FONT_SIZE.sm,
+    marginBottom: SPACING.md,
+    textAlign: 'center',
   },
   phoneDisplay: {
     flexDirection: 'row',

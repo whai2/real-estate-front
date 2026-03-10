@@ -45,7 +45,7 @@ export default function SignupScreen() {
     try {
       await apiRequest('/auth/send-code', {
         method: 'POST',
-        body: { phone: cleaned },
+        body: { phone: cleaned, type: 'signup' },
       });
       setStep('code');
       Alert.alert('알림', '인증번호가 발송되었습니다.');
@@ -64,18 +64,12 @@ export default function SignupScreen() {
 
     setLoading(true);
     try {
-      const result = await apiRequest('/auth/verify', {
+      const result = await apiRequest('/auth/signup-verify', {
         method: 'POST',
         body: { phone: phone.replace(/\D/g, ''), code },
       });
       setAuth(result.data.token, result.data.user);
-
-      if (result.data.isNewUser) {
-        router.replace('/register');
-      } else {
-        Alert.alert('알림', '이미 가입된 번호입니다. 로그인됩니다.');
-        router.replace('/(tabs)');
-      }
+      router.replace('/register');
     } catch (err: any) {
       Alert.alert('오류', err.message);
     } finally {
