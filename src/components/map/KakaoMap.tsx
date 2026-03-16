@@ -29,12 +29,12 @@ type Props = {
 type MapHandle = {
   setMarkers: (p: MapProperty[]) => void;
   moveTo: (lat: number, lng: number, level?: number) => void;
+  searchPlace: (keyword: string) => void;
 };
 
 // ─── 웹 전용: iframe 기반 ───
 const KakaoMapWebInner = React.forwardRef<MapHandle, Props>(function KakaoMapWebInner(props, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const blobUrlRef = useRef<string | null>(null);
   const {
     initialLat = 37.5665,
     initialLng = 126.978,
@@ -43,20 +43,29 @@ const KakaoMapWebInner = React.forwardRef<MapHandle, Props>(function KakaoMapWeb
     onRequestLocation,
   } = props;
 
-  // postMessage를 parent.postMessage로 변경한 웹용 HTML 생성
-  useEffect(() => {
-    const html = getKakaoMapHtml(initialLat, initialLng).replace(
+  // iframe 메시지 브릿지를 HTML에 추가하고, postMessage 대상을 parent로 변경
+  const htmlContent = React.useMemo(() => {
+    const base = getKakaoMapHtml(initialLat, initialLng).replace(
       /window\.ReactNativeWebView && window\.ReactNativeWebView\.postMessage/g,
       'window.parent.postMessage'
     );
-    const blob = new Blob([html], { type: 'text/html' });
-    blobUrlRef.current = URL.createObjectURL(blob);
-    if (iframeRef.current) {
-      iframeRef.current.src = blobUrlRef.current;
-    }
-    return () => {
-      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
-    };
+    // iframe 내부에서 parent → iframe 메시지를 수신하는 리스너를 HTML에 삽입
+    const messageListener = `
+      <script>
+        window.addEventListener('message', function(e) {
+          try {
+            var msg = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+            if (msg.action === 'setMarkers' && typeof setMarkers === 'function') {
+              setMarkers(msg.data);
+            } else if (msg.action === 'moveTo' && typeof moveTo === 'function') {
+              moveTo(msg.data.lat, msg.data.lng, msg.data.level);
+            } else if (msg.action === 'searchPlace' && typeof searchPlace === 'function') {
+              searchPlace(msg.data.keyword);
+            }
+          } catch(err) {}
+        });
+      </script>`;
+    return base.replace('</body>', messageListener + '</body>');
   }, [initialLat, initialLng]);
 
   // parent에서 iframe 메시지 수신
@@ -97,33 +106,20 @@ const KakaoMapWebInner = React.forwardRef<MapHandle, Props>(function KakaoMapWeb
     );
   }, []);
 
-  React.useImperativeHandle(ref, () => ({ setMarkers, moveTo }), [setMarkers, moveTo]);
+  const searchPlace = useCallback((keyword: string) => {
+    iframeRef.current?.contentWindow?.postMessage(
+      JSON.stringify({ action: 'searchPlace', data: { keyword } }),
+      '*'
+    );
+  }, []);
 
-  const onLoad = () => {
-    const iframeWin = iframeRef.current?.contentWindow;
-    if (!iframeWin) return;
-    // iframe 내부에 parent → iframe 메시지 리스너 주입
-    const script = iframeWin.document.createElement('script');
-    script.textContent = `
-      window.addEventListener('message', function(e) {
-        try {
-          var msg = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-          if (msg.action === 'setMarkers' && typeof setMarkers === 'function') {
-            setMarkers(msg.data);
-          } else if (msg.action === 'moveTo' && typeof moveTo === 'function') {
-            moveTo(msg.data.lat, msg.data.lng, msg.data.level);
-          }
-        } catch(err) {}
-      });
-    `;
-    iframeWin.document.body.appendChild(script);
-  };
+  React.useImperativeHandle(ref, () => ({ setMarkers, moveTo, searchPlace }), [setMarkers, moveTo, searchPlace]);
 
   return (
     <View style={styles.webview}>
       <iframe
         ref={iframeRef}
-        onLoad={onLoad}
+        srcDoc={htmlContent}
         style={{
           width: '100%',
           height: '100%',
@@ -156,7 +152,12 @@ const KakaoMapNativeInner = React.forwardRef<MapHandle, Props>(function KakaoMap
     webViewRef.current?.injectJavaScript(js);
   }, []);
 
-  React.useImperativeHandle(ref, () => ({ setMarkers, moveTo }), [setMarkers, moveTo]);
+  const searchPlace = useCallback((keyword: string) => {
+    const js = `searchPlace(${JSON.stringify(keyword)}); true;`;
+    webViewRef.current?.injectJavaScript(js);
+  }, []);
+
+  React.useImperativeHandle(ref, () => ({ setMarkers, moveTo, searchPlace }), [setMarkers, moveTo, searchPlace]);
 
   const handleMessage = useCallback(
     (event: any) => {

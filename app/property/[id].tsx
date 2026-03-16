@@ -8,6 +8,8 @@ import {
   Alert,
   Dimensions,
   Linking,
+  Image,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -16,6 +18,16 @@ import { COLORS, FONT_SIZE, SPACING, BORDER_RADIUS } from '../../src/constants/t
 import { apiRequest } from '../../src/services/api';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+
+type UnitDetail = {
+  floor: string;
+  unitNumber: string;
+  area?: number;
+  rooms?: number;
+  price?: string;
+  deposit?: string;
+  monthlyRent?: string;
+};
 
 type PropertyDetail = {
   _id: string;
@@ -30,6 +42,7 @@ type PropertyDetail = {
   area?: number;
   floor?: string;
   rooms?: number;
+  units?: UnitDetail[];
   description?: string;
   images: { url: string; order: number }[];
   userId: { name: string; agencyName: string; phone: string };
@@ -42,6 +55,7 @@ export default function PropertyDetailScreen() {
   const [property, setProperty] = useState<PropertyDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -98,13 +112,35 @@ export default function PropertyDetailScreen() {
     <SafeAreaView style={styles.container}>
       <Header title="매물 상세" showBack />
       <ScrollView style={styles.scroll}>
-        {/* 이미지 플레이스홀더 */}
-        <View style={styles.imagePlaceholder}>
-          <Text style={styles.imageIcon}>🏠</Text>
-          <Text style={styles.imageText}>
-            {property.images.length > 0 ? `사진 ${property.images.length}장` : '사진 없음'}
-          </Text>
-        </View>
+        {/* 이미지 */}
+        {property.images.length > 0 ? (
+          <View style={styles.imageContainer}>
+            <FlatList
+              data={[...property.images].sort((a, b) => a.order - b.order)}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item, idx) => `${item.url}-${idx}`}
+              onMomentumScrollEnd={(e) => {
+                const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+                setCurrentImageIndex(index);
+              }}
+              renderItem={({ item }) => (
+                <Image source={{ uri: item.url }} style={styles.propertyImage} resizeMode="contain" />
+              )}
+            />
+            <View style={styles.imageCounter}>
+              <Text style={styles.imageCounterText}>
+                {currentImageIndex + 1} / {property.images.length}
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Text style={styles.imageIcon}>🏠</Text>
+            <Text style={styles.imageText}>사진 없음</Text>
+          </View>
+        )}
 
         <View style={styles.content}>
           {/* 타입 태그 */}
@@ -120,26 +156,59 @@ export default function PropertyDetailScreen() {
           <Text style={styles.address}>{property.address}</Text>
 
           {/* 상세 정보 */}
-          <View style={styles.infoGrid}>
-            {property.area && (
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>면적</Text>
-                <Text style={styles.infoValue}>{property.area}평</Text>
-              </View>
-            )}
-            {property.floor && (
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>층수</Text>
-                <Text style={styles.infoValue}>{property.floor}층</Text>
-              </View>
-            )}
-            {property.rooms && (
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>방 수</Text>
-                <Text style={styles.infoValue}>{property.rooms}개</Text>
-              </View>
-            )}
-          </View>
+          {property.units && property.units.length > 0 ? (
+            <View>
+              <Text style={styles.sectionTitle}>호실별 정보</Text>
+              {property.units.map((unit, idx) => (
+                <View key={idx} style={styles.unitInfoCard}>
+                  <Text style={styles.unitInfoTitle}>{unit.floor}층 {unit.unitNumber}호</Text>
+                  <View style={styles.infoGrid}>
+                    {unit.area != null && (
+                      <View style={styles.infoItem}>
+                        <Text style={styles.infoLabel}>면적</Text>
+                        <Text style={styles.infoValue}>{unit.area}평</Text>
+                      </View>
+                    )}
+                    {unit.rooms != null && (
+                      <View style={styles.infoItem}>
+                        <Text style={styles.infoLabel}>방 수</Text>
+                        <Text style={styles.infoValue}>{unit.rooms}개</Text>
+                      </View>
+                    )}
+                    {(unit.price || unit.deposit || unit.monthlyRent) && (
+                      <View style={styles.infoItem}>
+                        <Text style={styles.infoLabel}>가격</Text>
+                        <Text style={styles.infoValue}>
+                          {unit.price ? `${unit.price}만` : `${unit.deposit}/${unit.monthlyRent}`}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.infoGrid}>
+              {property.area != null && (
+                <View style={styles.infoItem}>
+                  <Text style={styles.infoLabel}>면적</Text>
+                  <Text style={styles.infoValue}>{property.area}평</Text>
+                </View>
+              )}
+              {property.floor && (
+                <View style={styles.infoItem}>
+                  <Text style={styles.infoLabel}>층수</Text>
+                  <Text style={styles.infoValue}>{property.floor}층</Text>
+                </View>
+              )}
+              {property.rooms != null && (
+                <View style={styles.infoItem}>
+                  <Text style={styles.infoLabel}>방 수</Text>
+                  <Text style={styles.infoValue}>{property.rooms}개</Text>
+                </View>
+              )}
+            </View>
+          )}
 
           {/* 설명 */}
           {property.description && (
@@ -209,6 +278,25 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingText: { fontSize: FONT_SIZE.base, color: COLORS.gray400 },
+  imageContainer: {
+    width: SCREEN_WIDTH,
+    height: 220,
+    backgroundColor: COLORS.gray100,
+  },
+  propertyImage: {
+    width: SCREEN_WIDTH,
+    height: 220,
+  },
+  imageCounter: {
+    position: 'absolute',
+    bottom: 12,
+    right: 16,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  imageCounterText: { color: COLORS.white, fontSize: FONT_SIZE.xs, fontWeight: '600' },
   imagePlaceholder: {
     width: SCREEN_WIDTH,
     height: 240,
@@ -244,6 +332,18 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.sm,
     color: COLORS.gray500,
     marginBottom: SPACING.xl,
+  },
+  unitInfoCard: {
+    backgroundColor: COLORS.gray50,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.lg,
+    marginBottom: SPACING.sm,
+  },
+  unitInfoTitle: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    marginBottom: SPACING.sm,
   },
   infoGrid: {
     flexDirection: 'row',

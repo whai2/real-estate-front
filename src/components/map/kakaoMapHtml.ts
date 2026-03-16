@@ -39,38 +39,6 @@ export function getKakaoMapHtml(lat: number, lng: number) {
       border-top: 6px solid #0F766E;
     }
 
-    .search-box {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      right: 12px;
-      z-index: 10;
-      display: flex;
-      gap: 8px;
-    }
-    .search-box input {
-      flex: 1;
-      height: 44px;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 0 16px;
-      font-size: 14px;
-      background: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      outline: none;
-    }
-    .search-box button {
-      height: 44px;
-      padding: 0 16px;
-      background: #0F766E;
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-
     .my-location-btn {
       position: absolute;
       bottom: 24px;
@@ -91,10 +59,6 @@ export function getKakaoMapHtml(lat: number, lng: number) {
   </style>
 </head>
 <body>
-  <div class="search-box">
-    <input id="searchInput" type="text" placeholder="주소 또는 장소 검색" />
-    <button onclick="searchPlace()">검색</button>
-  </div>
   <div id="map"></div>
   <div class="my-location-btn" onclick="moveToMyLocation()">📍</div>
 
@@ -195,9 +159,8 @@ export function getKakaoMapHtml(lat: number, lng: number) {
       clusterer.addMarkers(markers);
     }
 
-    // 장소 검색
-    function searchPlace() {
-      var keyword = document.getElementById('searchInput').value;
+    // 장소 검색 (외부에서 keyword를 전달받아 실행)
+    function searchPlace(keyword) {
       if (!keyword) return;
 
       ps.keywordSearch(keyword, function(data, status) {
@@ -231,11 +194,6 @@ export function getKakaoMapHtml(lat: number, lng: number) {
       map.setCenter(moveLatLng);
       if (level) map.setLevel(level);
     }
-
-    // 엔터키 검색
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') searchPlace();
-    });
 
     kakao.maps.load(initMap);
   </script>
