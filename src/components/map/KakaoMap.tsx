@@ -43,13 +43,12 @@ const KakaoMapWebInner = React.forwardRef<MapHandle, Props>(function KakaoMapWeb
     onRequestLocation,
   } = props;
 
-  // iframe 메시지 브릿지를 HTML에 추가하고, postMessage 대상을 parent로 변경
-  const htmlContent = React.useMemo(() => {
+  // Blob URL로 iframe src 생성 (부모 origin을 상속하여 카카오 도메인 검증 통과)
+  const blobUrl = React.useMemo(() => {
     const base = getKakaoMapHtml(initialLat, initialLng).replace(
       /window\.ReactNativeWebView && window\.ReactNativeWebView\.postMessage/g,
       'window.parent.postMessage'
     );
-    // iframe 내부에서 parent → iframe 메시지를 수신하는 리스너를 HTML에 삽입
     const messageListener = `
       <script>
         window.addEventListener('message', function(e) {
@@ -65,8 +64,15 @@ const KakaoMapWebInner = React.forwardRef<MapHandle, Props>(function KakaoMapWeb
           } catch(err) {}
         });
       </script>`;
-    return base.replace('</body>', messageListener + '</body>');
+    const html = base.replace('</body>', messageListener + '</body>');
+    const blob = new Blob([html], { type: 'text/html' });
+    return URL.createObjectURL(blob);
   }, [initialLat, initialLng]);
+
+  // Blob URL 정리
+  useEffect(() => {
+    return () => URL.revokeObjectURL(blobUrl);
+  }, [blobUrl]);
 
   // parent에서 iframe 메시지 수신
   useEffect(() => {
@@ -119,7 +125,7 @@ const KakaoMapWebInner = React.forwardRef<MapHandle, Props>(function KakaoMapWeb
     <View style={styles.webview}>
       <iframe
         ref={iframeRef}
-        srcDoc={htmlContent}
+        src={blobUrl}
         style={{
           width: '100%',
           height: '100%',
