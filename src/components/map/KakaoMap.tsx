@@ -35,6 +35,7 @@ type MapHandle = {
 // ─── 웹 전용: iframe 기반 ───
 const KakaoMapWebInner = React.forwardRef<MapHandle, Props>(function KakaoMapWebInner(props, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const writtenRef = useRef(false);
   const {
     initialLat = 37.5665,
     initialLng = 126.978,
@@ -43,8 +44,7 @@ const KakaoMapWebInner = React.forwardRef<MapHandle, Props>(function KakaoMapWeb
     onRequestLocation,
   } = props;
 
-  // Blob URL로 iframe src 생성 (부모 origin을 상속하여 카카오 도메인 검증 통과)
-  const blobUrl = React.useMemo(() => {
+  const htmlContent = React.useMemo(() => {
     const base = getKakaoMapHtml(initialLat, initialLng).replace(
       /window\.ReactNativeWebView && window\.ReactNativeWebView\.postMessage/g,
       'window.parent.postMessage'
@@ -64,15 +64,20 @@ const KakaoMapWebInner = React.forwardRef<MapHandle, Props>(function KakaoMapWeb
           } catch(err) {}
         });
       </script>`;
-    const html = base.replace('</body>', messageListener + '</body>');
-    const blob = new Blob([html], { type: 'text/html' });
-    return URL.createObjectURL(blob);
+    return base.replace('</body>', messageListener + '</body>');
   }, [initialLat, initialLng]);
 
-  // Blob URL 정리
+  // iframe에 document.write로 HTML 삽입 (부모 origin을 그대로 상속)
   useEffect(() => {
-    return () => URL.revokeObjectURL(blobUrl);
-  }, [blobUrl]);
+    if (!iframeRef.current || writtenRef.current) return;
+    const doc = iframeRef.current.contentDocument;
+    if (doc) {
+      writtenRef.current = true;
+      doc.open();
+      doc.write(htmlContent);
+      doc.close();
+    }
+  }, [htmlContent]);
 
   // parent에서 iframe 메시지 수신
   useEffect(() => {
@@ -125,7 +130,6 @@ const KakaoMapWebInner = React.forwardRef<MapHandle, Props>(function KakaoMapWeb
     <View style={styles.webview}>
       <iframe
         ref={iframeRef}
-        src={blobUrl}
         style={{
           width: '100%',
           height: '100%',
