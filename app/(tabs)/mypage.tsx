@@ -56,24 +56,34 @@ export default function MyPageScreen() {
 
   const MENU_SECTIONS = [
     {
-      title: '매물 관리',
+      title: '매물',
       items: [
-        { label: '내 매물 목록', icon: '🏠', route: '/mypage/my-properties' },
-        { label: '관심매물', icon: '❤️', route: '/(tabs)/favorites' },
+        { label: '매물 관리', icon: '🏠', route: '/property/manage' },
+        { label: '일반매물 등록', icon: '📝', route: '/property/general-register' },
+        { label: '오픈현장 등록', icon: '🏢', route: '/property/open-site-register' },
+        { label: '오픈현장 캘린더', icon: '📅', route: '/open-schedule' },
       ],
     },
     {
       title: '알림',
       items: [
-        { label: '알림 목록', icon: '🔔', route: '/mypage/notifications' },
         { label: '알림 보내기', icon: '📢', route: '/notification/send' },
+        { label: '푸시 설정', icon: '🔔', route: '/mypage/push-settings' },
+      ],
+    },
+    {
+      title: '도구',
+      items: [
+        { label: '대출 계산기', icon: '🏦', route: '/mypage/loan-calc' },
+        { label: '수수료 계산기', icon: '💰', route: '/mypage/fee-calc' },
       ],
     },
     {
       title: '계정',
       items: [
-        { label: '프로필 수정', icon: '✏️', route: '/mypage/edit-profile' },
-        { label: '포인트 내역', icon: '💰', route: '/mypage/point-history' },
+        { label: '충전/구매', icon: '💎', route: '/mypage/purchase' },
+        { label: '포인트 내역', icon: '📊', route: '/mypage/point-history' },
+        { label: '프로필 수정', icon: '✏️', route: '/mypage/profile-edit' },
         { label: '문의하기', icon: '❓', route: '/mypage/inquiry' },
       ],
     },
