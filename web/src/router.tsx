@@ -101,6 +101,17 @@ export const router = createBrowserRouter([
           })),
       },
       {
+        path: '/property/:id',
+        lazy: () =>
+          import('@/pages/property-detail/PropertyDetailPage').then((m) => ({
+            Component: () => (
+              <AuthGuard>
+                <m.default />
+              </AuthGuard>
+            ),
+          })),
+      },
+      {
         path: '/open-schedule',
         lazy: () =>
           import('@/pages/open-schedule/OpenSchedulePage').then((m) => ({

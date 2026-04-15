@@ -1,5 +1,8 @@
+import { useNavigate } from 'react-router';
 import { Icon } from '@/components/ui/Icon';
+import { useFavoriteStore } from '@/stores/favorite.store';
 import type { Property } from '@/types/property';
+import { useEffect } from 'react';
 
 type PropertyListPanelProps = {
   properties: Property[];
@@ -21,6 +24,14 @@ export function PropertyListPanel({
   total,
   onPropertyClick,
 }: PropertyListPanelProps) {
+  const navigate = useNavigate();
+  const { isFavorite, toggleFavorite, fetchFavorites, favoriteIds } =
+    useFavoriteStore();
+
+  useEffect(() => {
+    if (favoriteIds.size === 0) fetchFavorites();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="w-96 bg-surface-container-lowest h-full z-30 shadow-xl flex flex-col relative border-r border-outline-variant/10">
       {/* Header */}
@@ -56,7 +67,10 @@ export function PropertyListPanel({
           properties.map((p) => (
             <div
               key={p._id}
-              onClick={() => onPropertyClick?.(p)}
+              onClick={() => {
+                onPropertyClick?.(p);
+                navigate(`/property/${p._id}`);
+              }}
               className="group bg-surface-container-low hover:bg-surface-container transition-colors rounded-xl overflow-hidden cursor-pointer"
             >
               {/* Thumbnail */}
@@ -73,10 +87,23 @@ export function PropertyListPanel({
                   </div>
                 )}
                 {p.score && p.score >= 90 && (
-                  <div className="absolute top-2 right-2 bg-on-tertiary-container text-surface-container-lowest px-2 py-1 rounded-md text-[10px] font-bold">
+                  <div className="absolute top-2 left-2 bg-on-tertiary-container text-surface-container-lowest px-2 py-1 rounded-md text-[10px] font-bold">
                     프리미엄
                   </div>
                 )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(p._id);
+                  }}
+                  className="absolute top-2 right-2 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors"
+                >
+                  <Icon
+                    name="favorite"
+                    className={`text-sm ${isFavorite(p._id) ? 'text-error' : 'text-on-surface-variant/40'}`}
+                    filled={isFavorite(p._id)}
+                  />
+                </button>
               </div>
 
               {/* Info */}

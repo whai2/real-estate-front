@@ -20,7 +20,7 @@ export function MobileMapSearch({ onSearch, onFilterOpen, locationLabel }: Props
   return (
     <>
       {/* Floating Search Header - pointer-events pass through to map */}
-      <header className="fixed top-0 w-full z-50 bg-transparent px-4 pt-4 pointer-events-none">
+      <header className="w-full bg-transparent px-4 pt-4 pointer-events-none">
         <div className="flex flex-col gap-3">
           {/* Search Bar */}
           <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full pointer-events-auto">
@@ -59,7 +59,7 @@ export function MobileMapSearch({ onSearch, onFilterOpen, locationLabel }: Props
 
       {/* Location Badge */}
       {locationLabel && (
-        <div className="fixed top-[108px] left-4 z-40 pointer-events-auto">
+        <div className="mt-2 ml-4 pointer-events-auto inline-block">
           <div className="glass-panel rounded-full px-3 py-1.5 border border-white/40 shadow-sm flex items-center gap-1.5">
             <div className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
             <span className="text-[11px] font-bold text-on-surface">{locationLabel}</span>

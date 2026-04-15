@@ -31,7 +31,7 @@ export function MobilePropertySlider({ properties, total, onPropertyClick }: Pro
   const count = total || properties.length;
 
   return (
-    <section className="fixed bottom-24 w-full z-40 px-4 pointer-events-none">
+    <section className="w-full px-4 pb-24 pointer-events-none">
       {/* Header */}
       <div className="flex items-center justify-between mb-3 px-2 pointer-events-auto">
         <h2 className="text-on-surface font-bold text-lg tracking-tight">

@@ -50,9 +50,9 @@ export default function MapPage() {
       </div>
 
       {/* ── Mobile Layout (lg 미만) ── */}
-      <div className="lg:hidden h-full w-full">
-        {/* Full-screen Map (z-0, receives all touch events) */}
-        <div className="absolute inset-0 z-0">
+      <div className="lg:hidden h-full w-full relative">
+        {/* Full-screen Map — z-10 so it sits above any stacking issues */}
+        <div className="absolute inset-0 z-10">
           <KakaoMap
             properties={properties}
             onBoundsChanged={handleBoundsChanged}
@@ -60,23 +60,27 @@ export default function MapPage() {
           />
         </div>
 
-        {/* Floating Search + Filter Chips (fixed, own z-index) */}
-        <MobileMapSearch
-          locationLabel="강남구 반포동 일대"
-          onSearch={(kw) => console.log('search:', kw)}
-        />
+        {/* Floating Search + Filter Chips — only inner elements capture touch */}
+        <div className="absolute top-0 left-0 right-0 z-20 pointer-events-none">
+          <MobileMapSearch
+            locationLabel="강남구 반포동 일대"
+            onSearch={(kw) => console.log('search:', kw)}
+          />
+        </div>
 
-        {/* Zoom & Location Controls (absolute within map area) */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-30">
+        {/* Zoom & Location Controls */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 pointer-events-auto">
           <MobileMapControls />
         </div>
 
-        {/* Bottom Property Slider (fixed, own z-index) */}
-        <MobilePropertySlider
-          properties={properties}
-          total={total}
-          onPropertyClick={handleMarkerClick}
-        />
+        {/* Bottom Property Slider — only cards capture touch */}
+        <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
+          <MobilePropertySlider
+            properties={properties}
+            total={total}
+            onPropertyClick={handleMarkerClick}
+          />
+        </div>
       </div>
     </div>
   );

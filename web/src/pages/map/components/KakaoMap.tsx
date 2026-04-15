@@ -113,19 +113,27 @@ export function KakaoMap({ onBoundsChanged, onMarkerClick, properties, drawingMo
     const showOverlays = map.getLevel() < 6;
 
     properties.forEach((p) => {
-      if (!p.trades?.[0]) return;
       const lat = (p as unknown as { lat: number }).lat;
       const lng = (p as unknown as { lng: number }).lng;
       if (!lat || !lng) return;
 
-      const price = p.trades[0].price
-        ? `₩ ${(p.trades[0].price / 100000000).toFixed(1)}억`
-        : '-';
+      const trade = p.trades?.[0];
+      const price = trade?.price
+        ? `₩ ${(trade.price / 100000000).toFixed(1)}억`
+        : trade?.deposit
+          ? `${(trade.deposit / 10000).toLocaleString()}만`
+          : p.title || '매물';
+
+      const isOpen = p.type === 'open';
+      const markerColor = isOpen ? '#e53935' : '#055db6';
 
       const el = document.createElement('div');
       el.className =
-        'flex items-center gap-1.5 bg-white px-3 py-1 rounded-full shadow-md border border-slate-200 cursor-pointer hover:border-[#055db6] transition-all';
-      el.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:#055db6;display:inline-block"></span><span style="font-size:12px;font-weight:700;color:#071b3b">${price}</span>`;
+        'flex items-center gap-1.5 bg-white px-3 py-1 rounded-full shadow-md border border-slate-200 cursor-pointer transition-all';
+      el.style.cssText = `--marker-color: ${markerColor}`;
+      el.onmouseenter = () => { el.style.borderColor = markerColor; };
+      el.onmouseleave = () => { el.style.borderColor = ''; };
+      el.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${markerColor};display:inline-block"></span><span style="font-size:12px;font-weight:700;color:#071b3b">${price}</span>`;
       el.onclick = () => onMarkerClick?.(p);
 
       const overlay = new kakao.maps.CustomOverlay({
@@ -189,10 +197,10 @@ export function KakaoMap({ onBoundsChanged, onMarkerClick, properties, drawingMo
       polygonRef.current.setMap(map!);
     }
 
-    kakao.maps.event.addListener(map, 'click', handleClick as () => void);
+    kakao.maps.event.addListener(map, 'click', handleClick);
 
     return () => {
-      (kakao.maps.event as any).removeListener(map, 'click', handleClick as () => void);
+      (kakao.maps.event as any).removeListener(map, 'click', handleClick);
     };
   }, [drawingMode, ready]);
 

@@ -1,29 +1,35 @@
 import { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router';
 import { Icon } from '@/components/ui/Icon';
 import { apiRequest } from '@/lib/api-client';
+import { useFavoriteStore } from '@/stores/favorite.store';
 import type { Property } from '@/types/property';
 
 export default function FavoritesPage() {
-  const [favorites, setFavorites] = useState<(Property & { favoriteId: string })[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const fetched = useRef(false);
+  const navigate = useNavigate();
+  const { isFavorite, toggleFavorite, fetchFavorites } = useFavoriteStore();
 
   useEffect(() => {
     if (fetched.current) return;
     fetched.current = true;
-    apiRequest<{ data: { favorites: { _id: string; propertyId: Property }[] } }>('/favorites')
-      .then((res) =>
-        setFavorites(
-          res.data.favorites.map((f) => ({ ...f.propertyId, favoriteId: f._id })),
-        ),
-      )
+
+    Promise.all([
+      apiRequest<{ data: { properties: Property[]; total: number } }>('/favorites'),
+      fetchFavorites(),
+    ])
+      .then(([res]) => setProperties(res.data.properties))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [fetchFavorites]);
 
-  async function handleRemove(favoriteId: string) {
-    await apiRequest(`/favorites/${favoriteId}`, { method: 'DELETE' });
-    setFavorites((prev) => prev.filter((f) => f.favoriteId !== favoriteId));
+  async function handleToggle(propertyId: string) {
+    const stillFavorite = await toggleFavorite(propertyId);
+    if (!stillFavorite) {
+      setProperties((prev) => prev.filter((p) => p._id !== propertyId));
+    }
   }
 
   return (
@@ -37,7 +43,7 @@ export default function FavoritesPage() {
 
       {loading ? (
         <p className="text-on-surface-variant py-12 text-center">로딩 중...</p>
-      ) : favorites.length === 0 ? (
+      ) : properties.length === 0 ? (
         <div className="text-center py-20">
           <Icon name="bookmark_border" className="text-5xl text-on-surface-variant/30 mb-4" />
           <p className="text-on-surface-variant">관심 매물이 없습니다.</p>
@@ -47,22 +53,34 @@ export default function FavoritesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {favorites.map((p) => (
+          {properties.map((p) => (
             <div
               key={p._id}
-              className="bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/10 hover:shadow-lg transition-shadow"
+              onClick={() => navigate(`/property/${p._id}`)}
+              className="bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/10 hover:shadow-lg transition-shadow cursor-pointer"
             >
               <div className="h-40 bg-surface-container-high flex items-center justify-center relative">
                 {p.photos?.[0] ? (
-                  <img src={typeof p.photos[0] === 'string' ? p.photos[0] : (p.photos[0] as unknown as { url: string }).url} alt={p.title} className="w-full h-full object-cover" />
+                  <img
+                    src={typeof p.photos[0] === 'string' ? p.photos[0] : (p.photos[0] as unknown as { url: string }).url}
+                    alt={p.title}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <Icon name="image" className="text-4xl text-on-surface-variant/30" />
                 )}
                 <button
-                  onClick={() => handleRemove(p.favoriteId)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggle(p._id);
+                  }}
                   className="absolute top-3 right-3 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors"
                 >
-                  <Icon name="favorite" className="text-error text-sm" filled />
+                  <Icon
+                    name="favorite"
+                    className={`text-sm ${isFavorite(p._id) ? 'text-error' : 'text-on-surface-variant/40'}`}
+                    filled={isFavorite(p._id)}
+                  />
                 </button>
               </div>
               <div className="p-5">
@@ -71,7 +89,9 @@ export default function FavoritesPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-secondary font-bold text-sm">
                     {p.trades?.[0]?.price
-                      ? `${(p.trades[0].price / 10000).toLocaleString()}만원`
+                      ? p.trades[0].price >= 100000000
+                        ? `${(p.trades[0].price / 100000000).toFixed(1)}억원`
+                        : `${(p.trades[0].price / 10000).toLocaleString()}만원`
                       : '-'}
                   </span>
                   <span className="text-[10px] text-on-surface-variant">

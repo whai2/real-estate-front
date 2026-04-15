@@ -26,6 +26,8 @@ export type ContactInput = {
 export type FormState = {
   title: string;
   address: string;
+  lat: number | null;
+  lng: number | null;
   propertyType: string;
   trades: TradeInput[];
   rooms: number;
@@ -55,6 +57,8 @@ function emptyTrade(type: TradeInput['type']): TradeInput {
 const initialForm: FormState = {
   title: '',
   address: '',
+  lat: null,
+  lng: null,
   propertyType: 'villa',
   trades: [emptyTrade('sale')],
   rooms: 3,
@@ -179,6 +183,8 @@ export default function PropertyRegisterPage() {
         body: {
           title: form.title,
           address: form.address,
+          lat: form.lat,
+          lng: form.lng,
           propertyType: form.propertyType,
           type: 'general',
           rooms: form.rooms,
@@ -395,7 +401,7 @@ export default function PropertyRegisterPage() {
                     value={contact.name}
                     onChange={(e) => {
                       const updated = [...form.contacts];
-                      updated[i] = { name: e.target.value, phone: updated[i]?.phone ?? '' };
+                      updated[i] = { name: e.target.value, phone: contact.phone };
                       updateForm('contacts', updated);
                     }}
                   />
@@ -405,7 +411,7 @@ export default function PropertyRegisterPage() {
                     value={contact.phone}
                     onChange={(e) => {
                       const updated = [...form.contacts];
-                      updated[i] = { name: updated[i]?.name ?? '', phone: e.target.value };
+                      updated[i] = { name: contact.name, phone: e.target.value };
                       updateForm('contacts', updated);
                     }}
                   />

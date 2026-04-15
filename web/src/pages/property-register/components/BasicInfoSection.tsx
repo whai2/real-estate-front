@@ -1,4 +1,6 @@
+import { useState, useCallback } from 'react';
 import { Icon } from '@/components/ui/Icon';
+import { AddressSearchModal, type DaumPostcodeResult } from '@/components/AddressSearchModal';
 
 type BasicInfoSectionProps = {
   form: {
@@ -6,10 +8,33 @@ type BasicInfoSectionProps = {
     address: string;
     propertyType: string;
   };
-  onChange: (field: string, value: string) => void;
+  onChange: (field: string, value: string | number) => void;
 };
 
 export function BasicInfoSection({ form, onChange }: BasicInfoSectionProps) {
+  const [showAddressModal, setShowAddressModal] = useState(false);
+
+  const handleAddressSelect = useCallback(
+    (data: DaumPostcodeResult) => {
+      const address = data.roadAddress || data.jibunAddress;
+      onChange('address', address);
+
+      // 카카오 Geocoder로 좌표 추출
+      if (typeof kakao !== 'undefined' && kakao.maps) {
+        kakao.maps.load(() => {
+          const geocoder = new kakao.maps.services.Geocoder();
+          geocoder.addressSearch(address, (result: any[], status: string) => {
+            if (status === kakao.maps.services.Status.OK && result[0]) {
+              onChange('lat', parseFloat(result[0].y));
+              onChange('lng', parseFloat(result[0].x));
+            }
+          });
+        });
+      }
+    },
+    [onChange],
+  );
+
   return (
     <section className="space-y-6">
       <div className="flex items-center gap-4 mb-2">
@@ -37,18 +62,31 @@ export function BasicInfoSection({ form, onChange }: BasicInfoSectionProps) {
           <label className="text-xs font-bold uppercase tracking-wider text-on-surface/60">
             주소 검색 <span className="text-error">*</span>
           </label>
-          <div className="relative">
+          <div
+            className="relative cursor-pointer"
+            onClick={() => setShowAddressModal(true)}
+          >
             <Icon
               name="location_on"
               className="absolute left-4 top-1/2 -translate-y-1/2 text-outline"
             />
             <input
-              className="w-full bg-surface-container-low border-none rounded-md pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-secondary focus:bg-surface-container-lowest transition-all"
-              placeholder="도로명 주소 또는 지번을 입력하세요..."
+              className="w-full bg-surface-container-low border-none rounded-md pl-12 pr-24 py-3.5 focus:ring-2 focus:ring-secondary focus:bg-surface-container-lowest transition-all cursor-pointer"
+              placeholder="클릭하여 주소를 검색하세요"
               type="text"
               value={form.address}
-              onChange={(e) => onChange('address', e.target.value)}
+              readOnly
             />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAddressModal(true);
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-primary text-white text-xs font-bold rounded-md hover:opacity-90 transition-opacity"
+            >
+              주소 찾기
+            </button>
           </div>
         </div>
         <div className="space-y-2">
@@ -70,6 +108,12 @@ export function BasicInfoSection({ form, onChange }: BasicInfoSectionProps) {
           </select>
         </div>
       </div>
+
+      <AddressSearchModal
+        open={showAddressModal}
+        onClose={() => setShowAddressModal(false)}
+        onSelect={handleAddressSelect}
+      />
     </section>
   );
 }

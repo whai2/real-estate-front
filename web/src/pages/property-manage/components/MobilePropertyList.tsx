@@ -65,18 +65,10 @@ function getTypeLabel(propertyType: string): string {
 
 export function MobilePropertyList({
   properties,
-  statusCounts,
-  total,
   activeFilter,
   onFilterChange,
 }: Props) {
   const navigate = useNavigate();
-
-  function getCount(status: string): number {
-    if (status === '') return total;
-    return statusCounts.find((c) => c._id === status)?.count ?? 0;
-  }
-  void getCount;
 
   return (
     <div className="flex flex-col gap-6">

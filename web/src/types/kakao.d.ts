@@ -32,11 +32,14 @@ declare namespace kakao.maps {
     clear(): void;
   }
   namespace event {
-    function addListener(target: any, type: string, handler: () => void): void;
+    function addListener(target: any, type: string, handler: (...args: any[]) => void): void;
   }
   namespace services {
     class Places {
       keywordSearch(keyword: string, callback: (data: any[], status: string) => void): void;
+    }
+    class Geocoder {
+      addressSearch(address: string, callback: (result: any[], status: string) => void): void;
     }
     const Status: { OK: string };
   }

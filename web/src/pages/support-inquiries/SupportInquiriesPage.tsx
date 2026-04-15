@@ -264,12 +264,12 @@ export default function SupportInquiriesPage() {
               <div className="flex items-center gap-3">
                 <h2 className="text-lg font-bold text-on-surface">문의 상세</h2>
                 {(() => {
-                  const badge = statusMap[selectedInquiry.status] ?? statusMap.pending ?? { bg: '', text: '', label: '' };
-                  return (
+                  const badge = statusMap[selectedInquiry.status] ?? statusMap.pending!;
+                  return badge ? (
                     <span className={`${badge.bg} ${badge.text} px-2.5 py-0.5 rounded-full text-[10px] font-bold`}>
                       {badge.label}
                     </span>
-                  );
+                  ) : null;
                 })()}
               </div>
               <button onClick={() => setSelectedInquiry(null)} className="p-1 rounded-lg hover:bg-surface-container-high">
