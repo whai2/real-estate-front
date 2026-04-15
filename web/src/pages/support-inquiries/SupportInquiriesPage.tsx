@@ -112,7 +112,7 @@ export default function SupportInquiriesPage() {
           ) : (
             <div className="divide-y divide-outline-variant/10">
               {inquiries.map((inq) => {
-                const badge = statusMap[inq.status] ?? statusMap.pending;
+                const badge = statusMap[inq.status] ?? statusMap.pending ?? { bg: '', text: '', label: '' };
                 return (
                   <button
                     key={inq._id}
@@ -149,7 +149,7 @@ export default function SupportInquiriesPage() {
           ) : (
             <div className="divide-y divide-outline-variant/10">
               {inquiries.map((inq) => {
-                const badge = statusMap[inq.status] ?? statusMap.pending;
+                const badge = statusMap[inq.status] ?? statusMap.pending ?? { bg: '', text: '', label: '' };
                 return (
                   <button
                     key={inq._id}

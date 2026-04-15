@@ -42,7 +42,7 @@ function formatCount(n: number): string {
   return String(n);
 }
 
-export function MobileCommunity({ posts, category, isLoading, onCategoryChange, onWrite }: Props) {
+export function MobileCommunity({ posts, category, isLoading, onCategoryChange, onWrite: _onWrite }: Props) {
   const navigate = useNavigate();
 
   return (
@@ -81,7 +81,7 @@ export function MobileCommunity({ posts, category, isLoading, onCategoryChange, 
       ) : (
         <div className="space-y-4">
           {posts.map((post) => {
-            const badge = categoryBadge[post.category] || categoryBadge.free;
+            const badge = categoryBadge[post.category] || categoryBadge.free || { bg: '', text: '', label: '' };
             return (
               <div
                 key={post._id}

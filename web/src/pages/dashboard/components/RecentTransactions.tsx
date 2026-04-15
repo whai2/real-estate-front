@@ -40,7 +40,7 @@ export function RecentTransactions({ transactions, onSelectProperty }: Props) {
           </div>
         ) : (
           transactions.map((tx) => {
-            const style = riskStyles[tx.riskLevel] || riskStyles.safe;
+            const style = riskStyles[tx.riskLevel] || riskStyles.safe || { border: '', icon: '', iconColor: '' };
             return (
               <button
                 key={tx._id}

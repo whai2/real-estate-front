@@ -64,7 +64,7 @@ export function PropertyTable({
   onUpdateStatus,
   onDelete,
   onOpenMemo,
-  onOpenGroupAssign,
+  onOpenGroupAssign: _onOpenGroupAssign,
   selectedIds = [],
   onToggleSelect,
   onToggleSelectAll,

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Icon } from '@/components/ui/Icon';
 import { useAuthStore } from '@/stores/auth.store';
@@ -48,7 +47,7 @@ export function MobileMoreMenu({ user, onOpenPurchase, onOpenPlans }: Props) {
   const { logout } = useAuthStore();
 
   const subscription = user?.subscription;
-  const daysLeft = subscription?.expiresAt
+  const _daysLeft = subscription?.expiresAt
     ? Math.max(0, Math.ceil((new Date(subscription.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0;
 

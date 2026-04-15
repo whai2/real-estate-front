@@ -72,7 +72,7 @@ export function MobilePropertyList({
 }: Props) {
   const navigate = useNavigate();
 
-  function getCount(status: string): number {
+  function _getCount(status: string): number {
     if (status === '') return total;
     return statusCounts.find((c) => c._id === status)?.count ?? 0;
   }
@@ -132,7 +132,7 @@ export function MobilePropertyList({
         </div>
       ) : (
         properties.map((prop) => {
-          const badge = statusBadgeMap[prop.status] || statusBadgeMap.active;
+          const badge = statusBadgeMap[prop.status] || statusBadgeMap.active || { bg: '', text: '', label: '' };
           const isCompleted = prop.status === 'completed';
           const tradeType = formatTradeType(prop.trades);
           const typeLabel = getTypeLabel(prop.propertyType);

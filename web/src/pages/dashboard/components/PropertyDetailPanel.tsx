@@ -23,7 +23,7 @@ const riskColors: Record<string, { bg: string; text: string; label: string }> = 
 
 export function PropertyDetailPanel({ property, onClose }: PropertyDetailPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('summary');
-  const risk = riskColors[property.riskLevel] ?? riskColors.safe;
+  const risk = riskColors[property.riskLevel] ?? riskColors.safe ?? { bg: '', text: '', label: '' };
 
   return (
     <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/10 shadow-[0_12px_40px_rgba(7,27,59,0.06)] overflow-hidden">

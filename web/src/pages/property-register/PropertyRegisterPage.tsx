@@ -395,7 +395,7 @@ export default function PropertyRegisterPage() {
                     value={contact.name}
                     onChange={(e) => {
                       const updated = [...form.contacts];
-                      updated[i] = { ...updated[i], name: e.target.value };
+                      updated[i] = { name: e.target.value, phone: updated[i].phone };
                       updateForm('contacts', updated);
                     }}
                   />
@@ -405,7 +405,7 @@ export default function PropertyRegisterPage() {
                     value={contact.phone}
                     onChange={(e) => {
                       const updated = [...form.contacts];
-                      updated[i] = { ...updated[i], phone: e.target.value };
+                      updated[i] = { name: updated[i].name, phone: e.target.value };
                       updateForm('contacts', updated);
                     }}
                   />
@@ -442,7 +442,7 @@ export default function PropertyRegisterPage() {
         </div>
 
         {/* Right: Preview */}
-        <PreviewPanel form={{ title: form.title, address: form.address, propertyType: form.propertyType, tradeType: form.trades[0]?.type ?? 'sale', price: form.trades[0]?.price ?? '', commission: form.trades[0]?.commissionAmount ?? '', rooms: form.rooms, bathrooms: form.bathrooms, balcony: form.balcony }} />
+        <PreviewPanel form={{ title: form.title, address: form.address, price: form.trades[0]?.price ?? '', commission: form.trades[0]?.commissionAmount ?? '', rooms: form.rooms, bathrooms: form.bathrooms, balcony: form.balcony }} />
       </div>
     </>
   );

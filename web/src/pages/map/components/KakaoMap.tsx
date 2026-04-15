@@ -153,7 +153,7 @@ export function KakaoMap({ onBoundsChanged, onMarkerClick, properties, drawingMo
   }, [ready, updateMarkers]);
 
   // Drawing mode: polygon click-to-draw
-  const polygonRef = useRef<kakao.maps.Polygon | null>(null);
+  const polygonRef = useRef<any>(null);
   const drawPointsRef = useRef<kakao.maps.LatLng[]>([]);
 
   useEffect(() => {
@@ -170,7 +170,7 @@ export function KakaoMap({ onBoundsChanged, onMarkerClick, properties, drawingMo
       return;
     }
 
-    function handleClick(e: kakao.maps.event.MouseEvent) {
+    function handleClick(e: any) {
       const latlng = e.latLng;
       drawPointsRef.current.push(latlng);
 
@@ -178,7 +178,7 @@ export function KakaoMap({ onBoundsChanged, onMarkerClick, properties, drawingMo
         polygonRef.current.setMap(null);
       }
 
-      polygonRef.current = new kakao.maps.Polygon({
+      polygonRef.current = new (kakao.maps as any).Polygon({
         path: drawPointsRef.current,
         strokeWeight: 3,
         strokeColor: '#055db6',
@@ -192,7 +192,7 @@ export function KakaoMap({ onBoundsChanged, onMarkerClick, properties, drawingMo
     kakao.maps.event.addListener(map, 'click', handleClick);
 
     return () => {
-      kakao.maps.event.removeListener(map, 'click', handleClick);
+      (kakao.maps.event as any).removeListener(map, 'click', handleClick);
     };
   }, [drawingMode, ready]);
 
