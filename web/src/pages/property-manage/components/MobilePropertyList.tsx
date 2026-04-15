@@ -72,10 +72,11 @@ export function MobilePropertyList({
 }: Props) {
   const navigate = useNavigate();
 
-  function _getCount(status: string): number {
+  function getCount(status: string): number {
     if (status === '') return total;
     return statusCounts.find((c) => c._id === status)?.count ?? 0;
   }
+  void getCount;
 
   return (
     <div className="flex flex-col gap-6">

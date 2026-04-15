@@ -189,10 +189,10 @@ export function KakaoMap({ onBoundsChanged, onMarkerClick, properties, drawingMo
       polygonRef.current.setMap(map!);
     }
 
-    kakao.maps.event.addListener(map, 'click', handleClick);
+    kakao.maps.event.addListener(map, 'click', handleClick as () => void);
 
     return () => {
-      (kakao.maps.event as any).removeListener(map, 'click', handleClick);
+      (kakao.maps.event as any).removeListener(map, 'click', handleClick as () => void);
     };
   }, [drawingMode, ready]);
 
